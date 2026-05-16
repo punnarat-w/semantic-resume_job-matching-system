@@ -145,6 +145,8 @@ Training writes:
 
 Each prediction row includes the requirement, true label, predicted label, probability, and a resume snippet so you can inspect failure cases.
 
+The train/validation split is grouped by normalized resume text before expanding into requirement-level examples. This prevents the same resume from appearing in both training and validation, even when one resume appears in multiple job records.
+
 ## Inference
 
 Use `notebooks/02_inference_baseline.ipynb`, or:

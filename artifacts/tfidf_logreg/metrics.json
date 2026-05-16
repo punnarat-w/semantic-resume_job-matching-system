@@ -1,8 +1,8 @@
 {
-  "accuracy": 0.7334754797441365,
-  "precision": 0.7136363636363636,
-  "recall": 0.7168949771689498,
-  "f1": 0.715261958997722,
-  "num_validation_examples": 469,
-  "num_failures": 125
+  "accuracy": 0.7016317016317016,
+  "precision": 0.6995884773662552,
+  "recall": 0.7555555555555555,
+  "f1": 0.7264957264957265,
+  "num_validation_examples": 429,
+  "num_failures": 128
 }

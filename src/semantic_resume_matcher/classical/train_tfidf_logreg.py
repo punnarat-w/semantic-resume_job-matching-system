@@ -12,10 +12,9 @@ import yaml
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from semantic_resume_matcher.data import RequirementExample, load_requirement_examples
+from semantic_resume_matcher.data import RequirementExample, expand_records, load_requirement_records, split_records_by_resume
 from semantic_resume_matcher.train import make_resume_snippet, write_jsonl
 
 
@@ -32,13 +31,15 @@ def train_tfidf_logreg(
     config = yaml.safe_load(Path(config_path).read_text(encoding="utf-8"))
     set_seed(config["seed"])
 
-    examples = load_requirement_examples(train_path)
-    train_examples, val_examples = train_test_split(
-        examples,
-        test_size=config["training"]["validation_split"],
-        random_state=config["seed"],
-        stratify=[example.label for example in examples] if len({e.label for e in examples}) > 1 else None,
+    records = load_requirement_records(train_path)
+    train_records, val_records = split_records_by_resume(
+        records,
+        validation_split=config["training"]["validation_split"],
+        seed=config["seed"],
     )
+    train_examples = expand_records(train_records)
+    val_examples = expand_records(val_records)
+
 
     vectorizer_config = dict(config["vectorizer"])
     if "ngram_range" in vectorizer_config:

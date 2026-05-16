@@ -10,7 +10,6 @@ import numpy as np
 import torch
 import yaml
 from sklearn.metrics import accuracy_score, f1_score
-from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -18,8 +17,10 @@ from tqdm.auto import tqdm
 from semantic_resume_matcher.data import (
     RequirementDataset,
     RequirementExample,
+    expand_records,
     iter_texts_for_vocab,
-    load_requirement_examples,
+    load_requirement_records,
+    split_records_by_resume,
 )
 from semantic_resume_matcher.models import ResumeRequirementModel, build_model
 from semantic_resume_matcher.models import bow_mlp as _bow_mlp  # noqa: F401
@@ -45,13 +46,15 @@ def train_model(
     config = yaml.safe_load(Path(config_path).read_text(encoding="utf-8"))
     set_seed(config["seed"])
     # Data preparation
-    examples = load_requirement_examples(train_path) #one resume can have multiple requirements, so this will split them into multiple examples with the same resume but different requirements and labels
-    train_examples, val_examples = train_test_split(
-        examples,
-        test_size=config["training"]["validation_split"],
-        random_state=config["seed"],
-        stratify=[example.label for example in examples] if len({e.label for e in examples}) > 1 else None,
+    records = load_requirement_records(train_path)
+    train_records, val_records = split_records_by_resume(
+        records,
+        validation_split=config["training"]["validation_split"],
+        seed=config["seed"],
     )
+    train_examples = expand_records(train_records)
+    val_examples = expand_records(val_records)
+
     ## build the vocabulary from the training examples only, to avoid data leakage. The vocabulary will be used to convert tokens to ids for the model.
     vocab = Vocabulary.build(
         iter_texts_for_vocab(train_examples),
@@ -73,7 +76,7 @@ def train_model(
         params=config["model"].get("params", {}),
     ).to(device)
 
-    # TODO: we can consider other optimizer and loss function
+    #TODO: consider using other optimizers or loss functions, and tuning hyperparameters such as learning rate, batch size, number of epochs, etc.
     optimizer = torch.optim.Adam(model.parameters(), lr=config["training"]["learning_rate"])
     criterion = nn.BCEWithLogitsLoss()
 

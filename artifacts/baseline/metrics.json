@@ -1,6 +1,6 @@
 {
-  "accuracy": 0.7718550106609808,
-  "f1": 0.7766179540709812,
-  "num_validation_examples": 469,
-  "num_failures": 107
+  "accuracy": 0.7296037296037297,
+  "f1": 0.7339449541284404,
+  "num_validation_examples": 429,
+  "num_failures": 116
 }

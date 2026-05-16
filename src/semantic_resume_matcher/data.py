@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterator
 
 import torch
+from sklearn.model_selection import GroupShuffleSplit
 from torch.utils.data import Dataset
 
 from semantic_resume_matcher.text import Vocabulary
@@ -18,38 +19,49 @@ class RequirementExample:
     label: int
 
 
+@dataclass(frozen=True)
+class RequirementRecord:
+    requirements: list[str]
+    resume: str
+    labels: list[int]
+
+
 def load_requirement_examples(path: str | Path) -> list[RequirementExample]:
+    return expand_records(load_requirement_records(path))
+
+
+def load_requirement_records(path: str | Path) -> list[RequirementRecord]:
     path = Path(path)
     if path.is_dir():
-        examples: list[RequirementExample] = []
+        records: list[RequirementRecord] = []
         for json_path in sorted(path.glob("*.json")):
-            examples.extend(_load_json_file(json_path))
+            records.extend(_load_json_file(json_path))
         for jsonl_path in sorted(path.glob("*.jsonl")):
-            examples.extend(_load_jsonl_file(jsonl_path))
-        return examples
+            records.extend(_load_jsonl_file(jsonl_path))
+        return records
 
     if path.suffix == ".json":
         return _load_json_file(path)
     return _load_jsonl_file(path)
 
 
-def _load_jsonl_file(path: Path) -> list[RequirementExample]:
-    examples: list[RequirementExample] = []
+def _load_jsonl_file(path: Path) -> list[RequirementRecord]:
+    records: list[RequirementRecord] = []
     with path.open("r", encoding="utf-8") as file:
         for line_number, line in enumerate(file, start=1):
             if not line.strip():
                 continue
             record = json.loads(line)
-            examples.extend(_record_to_examples(record, source=f"{path}:{line_number}"))
-    return examples
+            records.append(_record_to_requirement_record(record, source=f"{path}:{line_number}"))
+    return records
 
 
-def _load_json_file(path: Path) -> list[RequirementExample]:
+def _load_json_file(path: Path) -> list[RequirementRecord]:
     record = json.loads(path.read_text(encoding="utf-8"))
-    return _record_to_examples(record, source=str(path))
+    return [_record_to_requirement_record(record, source=str(path))]
 
 
-def _record_to_examples(record: dict, source: str) -> list[RequirementExample]:
+def _record_to_requirement_record(record: dict, source: str) -> RequirementRecord:
     if "input" in record and "output" in record:
         input_record = record["input"]
         requirements = input_record.get("minimum_requirements", [])
@@ -67,10 +79,36 @@ def _record_to_examples(record: dict, source: str) -> list[RequirementExample]:
     if any(label is None for label in labels):
         raise ValueError(f"{source}: every minimum requirement must have a matching output score.")
 
+    return RequirementRecord(
+        requirements=list(requirements),
+        resume=resume,
+        labels=[int(label) for label in labels],
+    )
+
+
+def expand_records(records: list[RequirementRecord]) -> list[RequirementExample]:
     return [
-        RequirementExample(requirement=requirement, resume=resume, label=int(label))
-        for requirement, label in zip(requirements, labels, strict=True)
+        RequirementExample(requirement=requirement, resume=record.resume, label=label)
+        for record in records
+        for requirement, label in zip(record.requirements, record.labels, strict=True)
     ]
+
+
+def split_records_by_resume(
+    records: list[RequirementRecord],
+    validation_split: float,
+    seed: int,
+) -> tuple[list[RequirementRecord], list[RequirementRecord]]:
+    groups = [normalize_text(record.resume) for record in records]
+    splitter = GroupShuffleSplit(n_splits=1, test_size=validation_split, random_state=seed)
+    train_indices, val_indices = next(splitter.split(records, groups=groups))
+    train_records = [records[index] for index in train_indices]
+    val_records = [records[index] for index in val_indices]
+    return train_records, val_records
+
+
+def normalize_text(text: str) -> str:
+    return " ".join(text.split())
 
 
 def iter_texts_for_vocab(examples: list[RequirementExample]) -> Iterator[str]:

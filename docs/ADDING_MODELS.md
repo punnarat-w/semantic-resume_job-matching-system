@@ -2,6 +2,8 @@
 
 The repo uses a small model registry so teammates can add architectures without changing the training or inference code.
 
+Training groups data by normalized resume text before expanding to requirement-level examples. New PyTorch models automatically use that safer split through `train.py`.
+
 Existing registered models:
 
 - `text_cnn`: multi-kernel TextCNN baseline.
