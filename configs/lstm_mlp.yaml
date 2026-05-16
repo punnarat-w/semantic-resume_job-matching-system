@@ -1,0 +1,19 @@
+seed: 42
+max_length: 300
+max_vocab_size: 10000
+min_freq: 1
+
+model:
+  name: lstm_mlp
+  params:
+    embedding_dim: 128
+    hidden_dim: 128
+    dense_dim: 64
+    dropout: 0.0
+
+training:
+  batch_size: 64
+  epochs: 5
+  learning_rate: 0.001
+  validation_split: 0.2
+  threshold: 0.5

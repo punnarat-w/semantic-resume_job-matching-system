@@ -1,0 +1,21 @@
+seed: 42
+max_length: 250
+min_freq: 1
+
+model:
+  name: ruozhengu_cnn
+  params:
+    embedding_dim: 100
+    num_filters: 1000
+    kernel_size: 5
+    hidden_dim: 1000
+    projection_dim: 100
+    dropout: 0.3
+
+training:
+  batch_size: 64
+  epochs: 5
+  learning_rate: 0.001
+  validation_split: 0.2
+  threshold: 0.5
+
