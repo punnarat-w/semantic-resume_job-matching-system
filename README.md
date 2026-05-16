@@ -49,6 +49,7 @@ Given a job's `minimum_requirements` and a resume, the system predicts whether t
 │       └── sample.jsonl
 ├── notebooks/
 │   ├── 01_training_baseline.ipynb
+│   ├── 01_training_classical_baseline.ipynb
 │   └── 02_inference_baseline.ipynb
 ├── src/
 │   └── semantic_resume_matcher/
@@ -58,8 +59,6 @@ Given a job's `minimum_requirements` and a resume, the system predicts whether t
 │       ├── personal_info.py
 │       ├── text.py
 │       └── train.py
-├── tests/
-│   └── test_personal_info.py
 └── requirements.txt
 ```
 
