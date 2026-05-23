@@ -11,6 +11,7 @@ from semantic_resume_matcher.models import ruozhengu_cnn as _ruozhengu_cnn  # no
 from semantic_resume_matcher.models import lstm_mlp as _lstm_mlp  # noqa: F401
 from semantic_resume_matcher.models import text_cnn as _text_cnn  # noqa: F401
 from semantic_resume_matcher.models import attention_cnn as _attention_cnn
+from semantic_resume_matcher.models import deep_conv as _deep_conv
 from semantic_resume_matcher.personal_info import extract_personal_info
 from semantic_resume_matcher.text import Vocabulary
 
