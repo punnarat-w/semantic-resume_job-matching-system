@@ -1,0 +1,18 @@
+seed: 42
+max_length: 512
+min_freq: 1
+
+model:
+  name: attention_cnn
+  params:
+    embedding_dim: 128
+    num_filters: 128
+    kernel_sizes: [3, 4, 5]
+    dropout: 0.3
+
+training:
+  batch_size: 16
+  epochs: 5
+  learning_rate: 0.001
+  validation_split: 0.2
+  threshold: 0.5
