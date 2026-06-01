@@ -17,17 +17,22 @@ from tqdm.auto import tqdm
 from semantic_resume_matcher.data import (
     RequirementDataset,
     RequirementExample,
+    apply_evidence_retrieval,
     expand_records,
     iter_texts_for_vocab,
     load_requirement_records,
     split_records_by_resume,
 )
+
 from semantic_resume_matcher.models import ResumeRequirementModel, build_model
 from semantic_resume_matcher.models import bow_mlp as _bow_mlp  # noqa: F401
 from semantic_resume_matcher.models import ruozhengu_cnn as _ruozhengu_cnn  # noqa: F401
 from semantic_resume_matcher.models import lstm_mlp as _lstm_mlp  # noqa: F401
 from semantic_resume_matcher.models import text_cnn as _text_cnn  # noqa: F401
 from semantic_resume_matcher.text import Vocabulary
+from semantic_resume_matcher.models import attention_cnn as _attention_cnn  # noqa: F401
+from semantic_resume_matcher.models import siamese_cnn as _siamese_cnn  # noqa: F401
+
 
 
 def set_seed(seed: int) -> None:
@@ -54,6 +59,12 @@ def train_model(
     )
     train_examples = expand_records(train_records)
     val_examples = expand_records(val_records)
+
+    evidence_config = config.get("evidence", {})
+    if evidence_config.get("enabled", False):
+        top_k = int(evidence_config.get("top_k", 3))
+        train_examples = apply_evidence_retrieval(train_examples, top_k=top_k)
+        val_examples = apply_evidence_retrieval(val_examples, top_k=top_k)
 
     ## build the vocabulary from the training examples only, to avoid data leakage. The vocabulary will be used to convert tokens to ids for the model.
     vocab = Vocabulary.build(
