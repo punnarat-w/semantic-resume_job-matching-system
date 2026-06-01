@@ -33,34 +33,6 @@ Given a job's `minimum_requirements` and a resume, the system predicts whether t
 }
 ```
 
-## Repo Structure
-
-```text
-.
-├── configs/
-│   ├── baseline.yaml
-│   ├── bow_mlp.yaml
-│   ├── lstm_mlp.yaml
-│   └── reference_cnn.yaml
-│   └── tfidf_logreg.yaml
-├── data/
-│   ├── processed/
-│   └── raw/
-│       └── sample.jsonl
-├── notebooks/
-│   ├── 01_training_baseline.ipynb
-│   ├── 01_training_classical_baseline.ipynb
-│   └── 02_inference_baseline.ipynb
-├── src/
-│   └── semantic_resume_matcher/
-│       ├── data.py
-│       ├── inference.py
-│       ├── models/
-│       ├── personal_info.py
-│       ├── text.py
-│       └── train.py
-└── requirements.txt
-```
 
 ## Setup
 
