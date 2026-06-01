@@ -1,0 +1,18 @@
+seed: 42
+
+embedding_model:
+  name: all-mpnet-base-v2
+  batch_size: 32
+  normalize_embeddings: true
+  device: null
+
+classifier:
+  class_weight: balanced
+  max_iter: 1000
+  solver: liblinear
+  random_state: 42
+
+training:
+  validation_split: 0.2
+  threshold: 0.5
+

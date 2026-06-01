@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -138,6 +138,8 @@ def evaluate(
     metrics = {
         "accuracy": accuracy_score(labels, predictions),
         "f1": f1_score(labels, predictions, zero_division=0),
+        "precision": precision_score(labels, predictions, zero_division=0),
+        "recall": recall_score(labels, predictions, zero_division=0),
         "num_validation_examples": len(labels),
         "num_failures": sum(int(label != prediction) for label, prediction in zip(labels, predictions, strict=True)),
     }
