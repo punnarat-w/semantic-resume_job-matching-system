@@ -11,6 +11,10 @@ from torch.utils.data import Dataset
 
 from semantic_resume_matcher.text import Vocabulary
 
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 @dataclass(frozen=True)
 class RequirementExample:
@@ -93,6 +97,63 @@ def expand_records(records: list[RequirementRecord]) -> list[RequirementExample]
         for requirement, label in zip(record.requirements, record.labels, strict=True)
     ]
 
+def apply_evidence_retrieval(
+    examples: list[RequirementExample],
+    top_k: int = 3,
+) -> list[RequirementExample]:
+    """Replace each full resume with the top-k most relevant resume sentences.
+
+    Relevance is computed using TF-IDF cosine similarity between the requirement
+    and each sentence in the resume.
+    """
+    return [
+        RequirementExample(
+            requirement=example.requirement,
+            resume=get_top_k_evidence(example.requirement, example.resume, top_k=top_k),
+            label=example.label,
+        )
+        for example in examples
+    ]
+
+
+def get_top_k_evidence(requirement: str, resume: str, top_k: int = 3) -> str:
+    sentences = split_resume_sentences(resume)
+
+    if top_k <= 0:
+        return resume
+
+    if len(sentences) <= top_k:
+        return resume
+
+    try:
+        texts = [requirement] + sentences
+        tfidf = TfidfVectorizer(ngram_range=(1, 2), stop_words="english").fit_transform(texts)
+        requirement_vec = tfidf[0]
+        sentence_vecs = tfidf[1:]
+        similarities = cosine_similarity(requirement_vec, sentence_vecs).flatten()
+        top_indices = similarities.argsort()[-top_k:]
+        top_indices = sorted(top_indices)
+        selected_sentences = [sentences[index] for index in top_indices]
+        return " ".join(selected_sentences)
+
+    except ValueError:
+        return resume
+
+
+def split_resume_sentences(resume: str) -> list[str]:
+    raw_sentences = re.split(r"(?<=[.!?])\s+|\n+|;+", resume)
+    sentences = []
+    
+    for sentence in raw_sentences:
+        cleaned = " ".join(sentence.split())
+        if len(cleaned) >= 20:
+            sentences.append(cleaned)
+
+    if sentences:
+        return sentences
+
+    cleaned_resume = " ".join(resume.split())
+    return [cleaned_resume] if cleaned_resume else []
 
 def split_records_by_resume(
     records: list[RequirementRecord],
