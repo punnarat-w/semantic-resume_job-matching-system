@@ -1,0 +1,18 @@
+seed: 42
+
+model:
+  name: sentence-transformers/all-mpnet-base-v2
+  max_length: 512
+
+training:
+  batch_size: 8
+  epochs: 3
+  learning_rate: 0.00002
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  validation_split: 0.2
+  threshold: 0.5
+  use_pos_weight: true
+  device: null
+

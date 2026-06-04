@@ -10,7 +10,10 @@ from semantic_resume_matcher.models.registry import register_model
 
 @register_model("lstm_mlp")
 class LSTMMLPBinaryMatcher(ResumeRequirementModel):
-    """LSTM baseline adapted from the screenshot for binary matching."""
+    """
+    LSTM baseline adapted from the Kanhaiya Jee LSTM architecture for binary matching.
+    Reference: https://github.com/kanhaiya0802/resume-matcher-ai
+    """
 
     def __init__(
         self,

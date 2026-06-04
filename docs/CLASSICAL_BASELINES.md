@@ -4,11 +4,6 @@ Classical models reuse the same requirement-level data loader, but they do not u
 
 The training split is still grouped by normalized resume text before expanding to requirement-level examples, so the same resume does not appear in both train and validation.
 
-Use them for baselines such as:
-
-- TF-IDF + Logistic Regression
-- TF-IDF + Linear SVM
-- Count vectors + Naive Bayes
 
 ## TF-IDF + Logistic Regression
 
