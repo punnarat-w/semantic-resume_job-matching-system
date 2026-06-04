@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -17,18 +17,24 @@ from tqdm.auto import tqdm
 from semantic_resume_matcher.data import (
     RequirementDataset,
     RequirementExample,
+    apply_evidence_retrieval,
     expand_records,
     iter_texts_for_vocab,
     load_requirement_records,
     split_records_by_resume,
 )
+
 from semantic_resume_matcher.models import ResumeRequirementModel, build_model
 from semantic_resume_matcher.models import bow_mlp as _bow_mlp  # noqa: F401
 from semantic_resume_matcher.models import ruozhengu_cnn as _ruozhengu_cnn  # noqa: F401
 from semantic_resume_matcher.models import lstm_mlp as _lstm_mlp  # noqa: F401
 from semantic_resume_matcher.models import text_cnn as _text_cnn  # noqa: F401
 from semantic_resume_matcher.models import deep_conv as _deep_conv
+from semantic_resume_matcher.models import attention_cnn as _attention_cnn
 from semantic_resume_matcher.text import Vocabulary
+from semantic_resume_matcher.models import attention_cnn as _attention_cnn  # noqa: F401
+from semantic_resume_matcher.models import siamese_cnn as _siamese_cnn  # noqa: F401
+
 
 
 def set_seed(seed: int) -> None:
@@ -55,6 +61,12 @@ def train_model(
     )
     train_examples = expand_records(train_records)
     val_examples = expand_records(val_records)
+
+    evidence_config = config.get("evidence", {})
+    if evidence_config.get("enabled", False):
+        top_k = int(evidence_config.get("top_k", 3))
+        train_examples = apply_evidence_retrieval(train_examples, top_k=top_k)
+        val_examples = apply_evidence_retrieval(val_examples, top_k=top_k)
 
     ## build the vocabulary from the training examples only, to avoid data leakage. The vocabulary will be used to convert tokens to ids for the model.
     vocab = Vocabulary.build(
@@ -139,6 +151,8 @@ def evaluate(
     metrics = {
         "accuracy": accuracy_score(labels, predictions),
         "f1": f1_score(labels, predictions, zero_division=0),
+        "precision": precision_score(labels, predictions, zero_division=0),
+        "recall": recall_score(labels, predictions, zero_division=0),
         "num_validation_examples": len(labels),
         "num_failures": sum(int(label != prediction) for label, prediction in zip(labels, predictions, strict=True)),
     }
